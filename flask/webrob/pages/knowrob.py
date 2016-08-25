@@ -23,19 +23,17 @@ __author__ = 'danielb@cs.uni-bremen.de'
 # TODO: remove "/knowrob" prefix in some routes or replace by "/kb"
 @app.route('/static/<path:filename>')
 @app.route('/knowrob/static/<path:filename>')
-@login_required
 def download_static(filename):
     return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
 @app.route('/episode_data/<path:filename>')
 @app.route('/knowrob/knowrob_data/<path:filename>')
-@login_required
 def download_logged_image(filename):
     return send_from_directory('/episodes/', filename)
 
 @app.route('/knowrob/local_data/<path:filename>')
-@login_required
 def transfer_logged_video(filename):
+    # TODO: stream the video
     data = base64.b64encode(file_read(session['user_container_name'], filename))
     return '<a href="data:video/mpeg;base64,{}" download="video.mpg">Download video</a>'.format(urllib.quote(data.rstrip('\n')))
 
@@ -43,7 +41,6 @@ def transfer_logged_video(filename):
 @app.route('/kb/')
 @app.route('/knowrob/')
 @app.route('/knowrob/exp/<category>/<exp>')
-@login_required
 def knowrob(category=None, exp=None):
     if not ensure_application_started('knowrob/hydro-knowrob-daemon'):
         return redirect(url_for('user.logout'))
@@ -62,7 +59,6 @@ def knowrob_remote(host='172.17.42.1', category=None, exp=None):
 @app.route('/replay')
 @app.route('/video')
 @app.route('/video/exp/<category>/<exp>')
-@login_required
 def video(category=None, exp=None):
     if not ensure_application_started('knowrob/hydro-knowrob-daemon'):
         return redirect(url_for('user.logout'))
@@ -142,7 +138,6 @@ def menu():
     return jsonify(menu_left=menu_left, menu_right=menu_right)
 
 @app.route('/knowrob/add_history_item', methods=['POST'])
-@login_required
 def add_history_item():
   query = json.loads(request.data)['query']
   hfile = get_history_file()
@@ -167,7 +162,6 @@ def add_history_item():
   return jsonify(result=None)
 
 @app.route('/knowrob/get_history_item', methods=['POST'])
-@login_required
 def get_history_item():
   index = json.loads(request.data)['index']
   
@@ -201,7 +195,6 @@ def admin_cookie():
 
 @app.route('/logs')
 @app.route('/log')
-@login_required
 def log():
   logStr = docker_interface.get_container_log(session['user_container_name'])
   return render_template('log.html', log=logStr)
